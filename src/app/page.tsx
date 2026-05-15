@@ -46,8 +46,8 @@ export default function DashboardPage() {
         title={isEditor ? `${currentAppUser.name}さんのマイタスク` : `${currentAppUser.name}さんのダッシュボード`}
         description={
           isEditor
-            ? "自分が編集者または進行担当として関わる案件だけを表示しています。"
-            : "運営者として今日見るべき案件だけを表示しています。"
+            ? "自分が編集担当の案件だけを表示しています。"
+            : "運営者として進行担当または編集担当で関わる案件だけを表示しています。"
         }
         action={
           <div className="flex flex-wrap gap-2">

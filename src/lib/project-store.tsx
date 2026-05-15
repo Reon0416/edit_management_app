@@ -67,11 +67,11 @@ export function ProjectStoreProvider({ children }: { children: React.ReactNode }
       const currentAppUser = appUsers.find((user) => user.id === currentAppUserId) ?? appUsers[0] ?? seedAppUsers[0];
       const visibleProjects =
         currentAppUser.role === "operator"
-          ? projects.filter((project) => project.manager.id === currentAppUser.linkedMemberId)
-          : projects.filter(
+          ? projects.filter(
               (project) =>
                 project.editor.id === currentAppUser.linkedMemberId || project.manager.id === currentAppUser.linkedMemberId
-            );
+            )
+          : projects.filter((project) => project.editor.id === currentAppUser.linkedMemberId);
       const currentMember =
         members.find((member) => member.id === currentAppUser.linkedMemberId) ??
         members.find((member) => member.role === (currentAppUser.role === "operator" ? "manager" : "editor")) ??
