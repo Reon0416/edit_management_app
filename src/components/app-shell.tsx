@@ -9,11 +9,13 @@ import { useProjects } from "@/lib/project-store";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "ダッシュボード", icon: BarChart3 },
-  { href: "/projects", label: "案件一覧", icon: FolderKanban },
-  { href: "/projects/new", label: "案件作成", icon: PlusCircle },
-  { href: "/people", label: "担当者別", icon: Users },
-  { href: "/settings", label: "設定", icon: Settings }
+  { href: "/", label: "ダッシュボード", icon: BarChart3, roles: ["operator"] },
+  { href: "/projects", label: "案件一覧", icon: FolderKanban, roles: ["operator"] },
+  { href: "/projects/new", label: "案件作成", icon: PlusCircle, roles: ["operator"] },
+  { href: "/people", label: "担当者別", icon: Users, roles: ["operator"] },
+  { href: "/settings", label: "設定", icon: Settings, roles: ["operator"] },
+  { href: "/", label: "マイタスク", icon: BarChart3, roles: ["editor"] },
+  { href: "/projects", label: "担当案件", icon: FolderKanban, roles: ["editor"] }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -61,7 +63,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
           <nav className="space-y-1">
-            {navItems.map((item) => {
+            {navItems
+              .filter((item) => item.roles.includes(currentAppUser.role))
+              .map((item) => {
               const Icon = item.icon;
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               return (
@@ -115,8 +119,14 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="absolute bottom-4 left-4 right-4 rounded-lg border bg-muted/60 p-3">
-            <p className="text-xs font-medium text-foreground">今日の確認</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">確認待ち、納期、最新ファイルを優先して処理します。</p>
+            <p className="text-xs font-medium text-foreground">
+              {currentAppUser.role === "operator" ? "今日の確認" : "今日の作業"}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              {currentAppUser.role === "operator"
+                ? "確認待ち、納期、最新ファイルを優先して処理します。"
+                : "自分に割り当てられた案件だけを表示します。"}
+            </p>
           </div>
         </aside>
 

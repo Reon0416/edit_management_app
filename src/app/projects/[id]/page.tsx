@@ -27,8 +27,9 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
-  const { visibleProjects, updateProjectStatus, addHistory, syncProjectWithMockDrive } = useProjects();
+  const { visibleProjects, currentAppUser, updateProjectStatus, addHistory, syncProjectWithMockDrive } = useProjects();
   const project = visibleProjects.find((item) => item.id === params.id);
+  const isEditor = currentAppUser.role === "editor";
   const [historyType, setHistoryType] = useState<HistoryType>("メモ");
   const [historyContent, setHistoryContent] = useState("");
   const [historyFileUrl, setHistoryFileUrl] = useState("");
@@ -68,14 +69,20 @@ export default function ProjectDetailPage() {
   return (
     <>
       <PageHeader
-        title={project.name}
-        description={`${project.clientName ?? "クライアント未設定"} / 管理者 ${project.manager.name} / 編集者 ${project.editor.name}`}
+        title={isEditor ? `編集タスク: ${project.name}` : project.name}
+        description={
+          isEditor
+            ? `${project.clientName ?? "クライアント未設定"} / 進行担当 ${project.manager.name}`
+            : `${project.clientName ?? "クライアント未設定"} / 進行担当 ${project.manager.name} / 編集者 ${project.editor.name}`
+        }
         action={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => syncProjectWithMockDrive(project.id)}>
-              <RefreshCw size={16} />
-              Drive同期
-            </Button>
+            {!isEditor ? (
+              <Button variant="outline" onClick={() => syncProjectWithMockDrive(project.id)}>
+                <RefreshCw size={16} />
+                Drive同期
+              </Button>
+            ) : null}
             <Button asChild href={project.driveFolderUrl} target="_blank">
               <ExternalLink size={16} />
               案件フォルダ
@@ -96,7 +103,9 @@ export default function ProjectDetailPage() {
             </div>
             <p className="mt-4 text-2xl font-semibold tracking-normal">{getNextAction(project.status)}</p>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              最新ファイル: {project.latestFileName ?? "-"} / 最終Drive同期: {formatDateTime(project.lastDriveSyncAt)}
+              {isEditor
+                ? `自分の作業に必要なDriveリンクと修正履歴だけを確認できます。最新ファイル: ${project.latestFileName ?? "-"}`
+                : `最新ファイル: ${project.latestFileName ?? "-"} / 最終Drive同期: ${formatDateTime(project.lastDriveSyncAt)}`}
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">

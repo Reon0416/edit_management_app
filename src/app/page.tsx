@@ -22,9 +22,12 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { visibleProjects: projects, currentAppUser } = useProjects();
+  const isEditor = currentAppUser.role === "editor";
   const active = projects.filter((project) => project.status !== "完成");
   const firstDraft = projects.filter((project) => project.status === "初稿提出済み");
   const revisions = projects.filter((project) => project.status === "修正対応中");
+  const editing = projects.filter((project) => project.status === "編集中" || project.status === "素材確認中");
+  const revisionRequests = projects.filter((project) => project.status === "修正依頼あり");
   const reviewWait = projects.filter((project) => isManagerReviewStatus(project.status));
   const soon = projects.filter((project) => {
     if (!project.dueDate) return false;
@@ -40,19 +43,55 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`${currentAppUser.name}さんのダッシュボード`}
-        description={`${currentAppUser.role === "operator" ? "運営者" : "編集者"}として今日見るべき案件だけを表示しています。`}
+        title={isEditor ? `${currentAppUser.name}さんのマイタスク` : `${currentAppUser.name}さんのダッシュボード`}
+        description={
+          isEditor
+            ? "自分に割り当てられた編集案件だけを表示しています。"
+            : "運営者として今日見るべき案件だけを表示しています。"
+        }
         action={
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" href="/projects">
-              案件一覧
+              {isEditor ? "担当案件" : "案件一覧"}
             </Button>
-            <Button asChild href="/projects/new">
-              案件作成
-            </Button>
+            {!isEditor ? (
+              <Button asChild href="/projects/new">
+                案件作成
+              </Button>
+            ) : null}
           </div>
         }
       />
+
+      {isEditor ? (
+        <>
+          <section className="mb-6 grid gap-4 md:grid-cols-3">
+            <Metric title="作業中" value={`${editing.length}件`} icon={<Clock3 size={18} />} />
+            <Metric title="修正依頼" value={`${revisionRequests.length}件`} icon={<AlertTriangle size={18} />} tone="warn" />
+            <Metric title="納期3日以内" value={`${soon.length}件`} icon={<TimerReset size={18} />} tone="ok" />
+          </section>
+
+          <Card>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardTitle>今日の作業</CardTitle>
+              <Button asChild variant="ghost" size="sm" href="/projects">
+                すべて見る
+                <ArrowRight size={14} />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {projects.filter((project) => project.status !== "完成").length === 0 ? (
+                <EmptyState text="現在担当中の作業はありません。" />
+              ) : (
+                projects
+                  .filter((project) => project.status !== "完成")
+                  .map((project) => <EditorTaskRow key={project.id} project={project} />)
+              )}
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <>
 
       <section className="grid-pattern mb-6 overflow-hidden rounded-lg border bg-white">
         <div className="grid gap-5 p-5 lg:grid-cols-[1.25fr_.75fr] lg:p-6">
@@ -130,6 +169,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </section>
+        </>
+      )}
     </>
   );
 }
@@ -202,4 +243,25 @@ function PriorityRow({ project }: { project: Project }) {
 
 function EmptyState({ text }: { text: string }) {
   return <p className="rounded-md border border-dashed bg-muted/40 px-4 py-6 text-center text-sm text-muted-foreground">{text}</p>;
+}
+
+function EditorTaskRow({ project }: { project: Project }) {
+  return (
+    <Link
+      href={`/projects/${project.id}`}
+      className="grid gap-3 rounded-md border bg-white px-4 py-3 transition hover:border-primary hover:shadow-sm md:grid-cols-[1fr_auto] md:items-center"
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate font-medium">{project.name}</p>
+          <StatusBadge status={project.status} />
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">{getNextAction(project.status)}</p>
+      </div>
+      <div className="text-left md:text-right">
+        <p className="text-sm font-medium">納期 {formatDate(project.dueDate)}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{project.clientName ?? "クライアント未設定"}</p>
+      </div>
+    </Link>
+  );
 }

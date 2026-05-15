@@ -15,6 +15,7 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 
 export default function ProjectsPage() {
   const { visibleProjects: projects, members, currentAppUser, syncProjectWithMockDrive } = useProjects();
+  const isEditor = currentAppUser.role === "editor";
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "all">("all");
   const [managerId, setManagerId] = useState("all");
@@ -46,14 +47,84 @@ export default function ProjectsPage() {
   return (
     <>
       <PageHeader
-        title={`${currentAppUser.name}さんの案件一覧`}
-        description={`${filtered.length}件を表示中。${currentAppUser.role === "operator" ? "運営者" : "編集者"}として紐づく案件だけを表示しています。`}
+        title={isEditor ? `${currentAppUser.name}さんの担当案件` : `${currentAppUser.name}さんの案件一覧`}
+        description={
+          isEditor
+            ? `${filtered.length}件を表示中。自分が編集者として担当している案件だけを表示しています。`
+            : `${filtered.length}件を表示中。運営者として紐づく案件だけを表示しています。`
+        }
         action={
-          <Button asChild href="/projects/new">
-            案件作成
-          </Button>
+          !isEditor ? (
+            <Button asChild href="/projects/new">
+              案件作成
+            </Button>
+          ) : null
         }
       />
+
+      {isEditor ? (
+        <>
+          <section className="mb-4 grid gap-3 md:grid-cols-3">
+            <Summary label="担当中" value={projects.filter((project) => project.status !== "完成").length} />
+            <Summary label="修正依頼" value={projects.filter((project) => project.status === "修正依頼あり").length} />
+            <Summary label="完成" value={projects.filter((project) => project.status === "完成").length} />
+          </section>
+
+          <Card className="mb-4">
+            <CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_.7fr]">
+              <label className="relative">
+                <Search className="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} />
+                <Input
+                  className="pl-9"
+                  placeholder="担当案件・ファイル名で検索"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+              </label>
+              <Select value={sort} onChange={(event) => setSort(event.target.value)}>
+                <option value="updated">最終更新順</option>
+                <option value="due">納期順</option>
+              </Select>
+            </CardContent>
+          </Card>
+
+          <section className="grid gap-4 xl:grid-cols-2">
+            {filtered.length === 0 ? (
+              <p className="rounded-lg border border-dashed bg-white px-4 py-12 text-center text-sm text-muted-foreground xl:col-span-2">
+                条件に一致する担当案件はありません。
+              </p>
+            ) : (
+              filtered.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="rounded-lg border bg-white p-4 shadow-sm transition hover:border-primary hover:shadow-md"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{project.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{project.clientName ?? "クライアント未設定"}</p>
+                    </div>
+                    <StatusBadge status={project.status} />
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-md bg-muted/60 px-3 py-2">
+                      <p className="text-xs text-muted-foreground">次の作業</p>
+                      <p className="mt-1 text-sm font-medium">{getNextAction(project.status)}</p>
+                    </div>
+                    <div className="rounded-md bg-muted/60 px-3 py-2">
+                      <p className="text-xs text-muted-foreground">納期</p>
+                      <p className="mt-1 text-sm font-medium">{formatDate(project.dueDate)}</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 truncate text-xs text-muted-foreground">最新ファイル: {project.latestFileName ?? "-"}</p>
+                </Link>
+              ))
+            )}
+          </section>
+        </>
+      ) : (
+        <>
 
       <section className="mb-4 grid gap-3 md:grid-cols-4">
         <Summary label="全案件" value={projects.length} />
@@ -172,6 +243,8 @@ export default function ProjectsPage() {
           ))
         )}
       </div>
+        </>
+      )}
     </>
   );
 }

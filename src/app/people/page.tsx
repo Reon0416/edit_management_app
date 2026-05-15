@@ -10,6 +10,19 @@ import { isManagerReviewStatus } from "@/lib/status";
 export default function PeoplePage() {
   const { visibleProjects: projects, members, currentAppUser } = useProjects();
 
+  if (currentAppUser.role === "editor") {
+    return (
+      <>
+        <PageHeader title="担当者別" description="担当者別の確認は運営者専用です。" />
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">編集者は自分の担当案件だけを確認できます。</p>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader

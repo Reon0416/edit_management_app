@@ -9,7 +9,7 @@ import { useProjects } from "@/lib/project-store";
 import type { Role } from "@/lib/types";
 
 export default function SettingsPage() {
-  const { members, addMember } = useProjects();
+  const { members, currentAppUser, addMember } = useProjects();
   const [form, setForm] = useState({ name: "", email: "", role: "editor" as Role });
   const supabaseConfigured =
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) && Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -19,6 +19,22 @@ export default function SettingsPage() {
     if (!form.name.trim()) return;
     addMember(form);
     setForm({ name: "", email: "", role: "editor" });
+  }
+
+  if (currentAppUser.role === "editor") {
+    return (
+      <>
+        <PageHeader title="設定" description="設定は運営者専用です。" />
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">編集者は担当案件の確認と作業更新に集中する画面だけを使用します。</p>
+            <Button asChild className="mt-4" href="/projects">
+              担当案件へ
+            </Button>
+          </CardContent>
+        </Card>
+      </>
+    );
   }
 
   return (

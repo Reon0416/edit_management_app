@@ -13,7 +13,7 @@ import type { ProjectStatus } from "@/lib/types";
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const { members, addProject, syncProjectWithMockDrive } = useProjects();
+  const { members, currentAppUser, addProject, syncProjectWithMockDrive } = useProjects();
   const [form, setForm] = useState({
     name: "",
     clientName: "",
@@ -26,6 +26,22 @@ export default function NewProjectPage() {
   });
 
   const folderId = extractDriveFolderId(form.driveFolderUrl);
+
+  if (currentAppUser.role === "editor") {
+    return (
+      <>
+        <PageHeader title="案件作成" description="案件作成は運営者専用です。" />
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">編集者は自分に割り当てられた担当案件のみ確認できます。</p>
+            <Button asChild className="mt-4" href="/projects">
+              担当案件へ
+            </Button>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
