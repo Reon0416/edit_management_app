@@ -46,7 +46,7 @@ export default function DashboardPage() {
         title={isEditor ? `${currentAppUser.name}さんのマイタスク` : `${currentAppUser.name}さんのダッシュボード`}
         description={
           isEditor
-            ? "自分に割り当てられた編集案件だけを表示しています。"
+            ? "自分が編集者または進行担当として関わる案件だけを表示しています。"
             : "運営者として今日見るべき案件だけを表示しています。"
         }
         action={

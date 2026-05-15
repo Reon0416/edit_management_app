@@ -50,7 +50,7 @@ export default function ProjectsPage() {
         title={isEditor ? `${currentAppUser.name}さんの担当案件` : `${currentAppUser.name}さんの案件一覧`}
         description={
           isEditor
-            ? `${filtered.length}件を表示中。自分が編集者として担当している案件だけを表示しています。`
+            ? `${filtered.length}件を表示中。自分が編集者または進行担当として関わる案件だけを表示しています。`
             : `${filtered.length}件を表示中。運営者として紐づく案件だけを表示しています。`
         }
         action={
@@ -65,7 +65,7 @@ export default function ProjectsPage() {
       {isEditor ? (
         <>
           <section className="mb-4 grid gap-3 md:grid-cols-3">
-            <Summary label="担当中" value={projects.filter((project) => project.status !== "完成").length} />
+            <Summary label="関与中" value={projects.filter((project) => project.status !== "完成").length} />
             <Summary label="修正依頼" value={projects.filter((project) => project.status === "修正依頼あり").length} />
             <Summary label="完成" value={projects.filter((project) => project.status === "完成").length} />
           </section>

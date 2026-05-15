@@ -68,7 +68,10 @@ export function ProjectStoreProvider({ children }: { children: React.ReactNode }
       const visibleProjects =
         currentAppUser.role === "operator"
           ? projects.filter((project) => project.manager.id === currentAppUser.linkedMemberId)
-          : projects.filter((project) => project.editor.id === currentAppUser.linkedMemberId);
+          : projects.filter(
+              (project) =>
+                project.editor.id === currentAppUser.linkedMemberId || project.manager.id === currentAppUser.linkedMemberId
+            );
       const currentMember =
         members.find((member) => member.id === currentAppUser.linkedMemberId) ??
         members.find((member) => member.role === (currentAppUser.role === "operator" ? "manager" : "editor")) ??

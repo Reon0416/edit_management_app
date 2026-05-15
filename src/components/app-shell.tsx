@@ -125,7 +125,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {currentAppUser.role === "operator"
                 ? "確認待ち、納期、最新ファイルを優先して処理します。"
-                : "自分に割り当てられた案件だけを表示します。"}
+                : "自分が編集者または進行担当の案件だけを表示します。"}
             </p>
           </div>
         </aside>
