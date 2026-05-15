@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { classifyDriveItem, extractDriveFolderId, getLatestDriveItem, suggestStatusFromDrive } from "@/lib/drive";
-import { seedMembers, seedProjects } from "@/lib/seed";
-import type { DriveScanItem, HistoryType, Member, Project, ProjectStatus } from "@/lib/types";
+import { seedAppUsers, seedMembers, seedProjects } from "@/lib/seed";
+import type { AppUser, DriveScanItem, HistoryType, Member, Project, ProjectStatus } from "@/lib/types";
 
 interface ProjectCreateInput {
   name: string;
@@ -18,7 +18,11 @@ interface ProjectCreateInput {
 
 interface ProjectStoreValue {
   projects: Project[];
+  visibleProjects: Project[];
   members: Member[];
+  appUsers: AppUser[];
+  currentAppUser: AppUser;
+  setCurrentAppUserId: (userId: string) => void;
   addProject: (input: ProjectCreateInput) => Project;
   updateProjectStatus: (projectId: string, status: ProjectStatus) => void;
   addHistory: (projectId: string, type: HistoryType, content: string, fileUrl?: string) => void;
@@ -32,27 +36,51 @@ const STORAGE_KEY = "editflow-manager-store";
 export function ProjectStoreProvider({ children }: { children: React.ReactNode }) {
   const [projects, setProjects] = useState<Project[]>(seedProjects);
   const [members, setMembers] = useState<Member[]>(seedMembers);
+  const [appUsers, setAppUsers] = useState<AppUser[]>(seedAppUsers);
+  const [currentAppUserId, setCurrentAppUserId] = useState(seedAppUsers[0].id);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     try {
-      const parsed = JSON.parse(raw) as { projects: Project[]; members: Member[] };
+      const parsed = JSON.parse(raw) as {
+        projects: Project[];
+        members: Member[];
+        appUsers?: AppUser[];
+        currentAppUserId?: string;
+      };
       setProjects(parsed.projects);
-      setMembers(parsed.members);
+      setMembers(mergeById(parsed.members, seedMembers));
+      setAppUsers(mergeById(parsed.appUsers ?? [], seedAppUsers));
+      setCurrentAppUserId(parsed.currentAppUserId ?? seedAppUsers[0].id);
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects, members }));
-  }, [projects, members]);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects, members, appUsers, currentAppUserId }));
+  }, [appUsers, currentAppUserId, members, projects]);
 
   const value = useMemo<ProjectStoreValue>(
-    () => ({
-      projects,
-      members,
+    () => {
+      const currentAppUser = appUsers.find((user) => user.id === currentAppUserId) ?? appUsers[0] ?? seedAppUsers[0];
+      const visibleProjects =
+        currentAppUser.role === "operator"
+          ? projects.filter((project) => project.manager.id === currentAppUser.linkedMemberId)
+          : projects.filter((project) => project.editor.id === currentAppUser.linkedMemberId);
+      const currentMember =
+        members.find((member) => member.id === currentAppUser.linkedMemberId) ??
+        members.find((member) => member.role === (currentAppUser.role === "operator" ? "manager" : "editor")) ??
+        members[0];
+
+      return {
+        projects,
+        visibleProjects,
+        members,
+        appUsers,
+        currentAppUser,
+        setCurrentAppUserId,
       addProject(input) {
         const manager = members.find((member) => member.id === input.managerId) ?? members[0];
         const editor = members.find((member) => member.id === input.editorId) ?? members[0];
@@ -105,7 +133,7 @@ export function ProjectStoreProvider({ children }: { children: React.ReactNode }
                   projectId,
                   type: "ステータス変更",
                   content: `ステータスを「${status}」に変更しました。`,
-                  createdBy: project.manager,
+                  createdBy: currentMember,
                   createdAt: now
                 },
                 ...project.histories
@@ -128,7 +156,7 @@ export function ProjectStoreProvider({ children }: { children: React.ReactNode }
                   type,
                   content,
                   fileUrl,
-                  createdBy: project.manager,
+                  createdBy: currentMember,
                   createdAt: new Date().toISOString()
                 },
                 ...project.histories
@@ -202,7 +230,7 @@ export function ProjectStoreProvider({ children }: { children: React.ReactNode }
                   projectId,
                   type: "Drive同期",
                   content: "Driveフォルダを同期し、分類結果とステータス候補を更新しました。",
-                  createdBy: project.manager,
+                  createdBy: currentMember,
                   createdAt: now
                 },
                 ...project.histories
@@ -224,8 +252,9 @@ export function ProjectStoreProvider({ children }: { children: React.ReactNode }
           }
         ]);
       }
-    }),
-    [members, projects]
+    };
+    },
+    [appUsers, currentAppUserId, members, projects]
   );
 
   return <ProjectStoreContext.Provider value={value}>{children}</ProjectStoreContext.Provider>;
@@ -235,4 +264,11 @@ export function useProjects() {
   const context = useContext(ProjectStoreContext);
   if (!context) throw new Error("useProjects must be used inside ProjectStoreProvider");
   return context;
+}
+
+function mergeById<T extends { id: string }>(stored: T[], fallback: T[]) {
+  const map = new Map<string, T>();
+  for (const item of fallback) map.set(item.id, item);
+  for (const item of stored) map.set(item.id, item);
+  return Array.from(map.values());
 }

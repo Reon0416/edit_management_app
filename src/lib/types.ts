@@ -1,4 +1,5 @@
 export type Role = "manager" | "editor" | "both";
+export type AppRole = "operator" | "editor";
 
 export type ProjectStatus =
   | "未着手"
@@ -27,6 +28,14 @@ export interface Member {
   email?: string;
   role: Role;
   createdAt: string;
+}
+
+export interface AppUser {
+  id: string;
+  name: string;
+  email?: string;
+  role: AppRole;
+  linkedMemberId: string;
 }
 
 export interface DriveFile {

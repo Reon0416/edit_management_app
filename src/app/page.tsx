@@ -21,7 +21,7 @@ import type { Project } from "@/lib/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 export default function DashboardPage() {
-  const { projects } = useProjects();
+  const { visibleProjects: projects, currentAppUser } = useProjects();
   const active = projects.filter((project) => project.status !== "完成");
   const firstDraft = projects.filter((project) => project.status === "初稿提出済み");
   const revisions = projects.filter((project) => project.status === "修正対応中");
@@ -40,8 +40,8 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="ダッシュボード"
-        description="今日見るべき案件とDrive更新を一画面で確認します。"
+        title={`${currentAppUser.name}さんのダッシュボード`}
+        description={`${currentAppUser.role === "operator" ? "運営者" : "編集者"}として今日見るべき案件だけを表示しています。`}
         action={
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" href="/projects">

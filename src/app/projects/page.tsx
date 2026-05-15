@@ -14,7 +14,7 @@ import type { ProjectStatus } from "@/lib/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 export default function ProjectsPage() {
-  const { projects, members, syncProjectWithMockDrive } = useProjects();
+  const { visibleProjects: projects, members, currentAppUser, syncProjectWithMockDrive } = useProjects();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "all">("all");
   const [managerId, setManagerId] = useState("all");
@@ -46,8 +46,8 @@ export default function ProjectsPage() {
   return (
     <>
       <PageHeader
-        title="案件一覧"
-        description={`${filtered.length}件を表示中。担当者、進捗、次の行動を横断して確認できます。`}
+        title={`${currentAppUser.name}さんの案件一覧`}
+        description={`${filtered.length}件を表示中。${currentAppUser.role === "operator" ? "運営者" : "編集者"}として紐づく案件だけを表示しています。`}
         action={
           <Button asChild href="/projects/new">
             案件作成

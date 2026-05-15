@@ -8,11 +8,14 @@ import { useProjects } from "@/lib/project-store";
 import { isManagerReviewStatus } from "@/lib/status";
 
 export default function PeoplePage() {
-  const { projects, members } = useProjects();
+  const { visibleProjects: projects, members, currentAppUser } = useProjects();
 
   return (
     <>
-      <PageHeader title="担当者別" description="管理者・編集者ごとの担当案件数、確認待ち、修正対応中を確認します。" />
+      <PageHeader
+        title="担当者別"
+        description={`${currentAppUser.name}さんに紐づく案件を、管理者・編集者ごとに確認します。`}
+      />
       <section className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>

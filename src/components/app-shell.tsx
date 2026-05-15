@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FolderKanban, Menu, PlusCircle, Settings, Sparkles, Users, X } from "lucide-react";
+import { BarChart3, FolderKanban, Menu, PlusCircle, Settings, Sparkles, UserRound, Users, X } from "lucide-react";
 import { useState } from "react";
 import { ProjectStoreProvider } from "@/lib/project-store";
+import { useProjects } from "@/lib/project-store";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -16,12 +17,20 @@ const navItems = [
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-
   return (
     <ProjectStoreProvider>
-      <div className="min-h-screen bg-background">
+      <AppShellInner>{children}</AppShellInner>
+    </ProjectStoreProvider>
+  );
+}
+
+function AppShellInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const { appUsers, currentAppUser, setCurrentAppUserId, visibleProjects } = useProjects();
+
+  return (
+    <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white/95 px-4 backdrop-blur lg:hidden">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <span className="grid size-8 place-items-center rounded-md bg-primary text-primary-foreground">
@@ -71,6 +80,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+          <div className="mt-6 rounded-lg border bg-white p-3">
+            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <UserRound size={14} />
+              表示ユーザー
+            </div>
+            <select
+              className="focus-ring h-9 w-full rounded-md border bg-white px-2 text-sm"
+              value={currentAppUser.id}
+              onChange={(event) => setCurrentAppUserId(event.target.value)}
+            >
+              <optgroup label="運営者">
+                {appUsers
+                  .filter((user) => user.role === "operator")
+                  .map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="編集者">
+                {appUsers
+                  .filter((user) => user.role === "editor")
+                  .map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+              <span>{currentAppUser.role === "operator" ? "運営者画面" : "編集者画面"}</span>
+              <span>{visibleProjects.length}件</span>
+            </div>
+          </div>
           <div className="absolute bottom-4 left-4 right-4 rounded-lg border bg-muted/60 p-3">
             <p className="text-xs font-medium text-foreground">今日の確認</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">確認待ち、納期、最新ファイルを優先して処理します。</p>
@@ -81,6 +124,5 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className="mx-auto max-w-[1480px] px-4 py-6 lg:ml-64 lg:px-8">{children}</main>
       </div>
-    </ProjectStoreProvider>
   );
 }

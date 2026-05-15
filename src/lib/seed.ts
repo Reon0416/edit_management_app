@@ -1,4 +1,4 @@
-import type { Member, Project } from "@/lib/types";
+import type { AppUser, Member, Project } from "@/lib/types";
 
 export const seedMembers: Member[] = [
   {
@@ -28,6 +28,121 @@ export const seedMembers: Member[] = [
     email: "suzuki@example.com",
     role: "editor",
     createdAt: "2026-05-01T09:00:00+09:00"
+  },
+  {
+    id: "member-kobayashi",
+    name: "小林",
+    email: "kobayashi@example.com",
+    role: "manager",
+    createdAt: "2026-05-01T09:00:00+09:00"
+  },
+  {
+    id: "member-ito",
+    name: "伊藤",
+    email: "ito@example.com",
+    role: "manager",
+    createdAt: "2026-05-01T09:00:00+09:00"
+  },
+  {
+    id: "member-nakamura",
+    name: "中村",
+    email: "nakamura@example.com",
+    role: "manager",
+    createdAt: "2026-05-01T09:00:00+09:00"
+  },
+  {
+    id: "member-kato",
+    name: "加藤",
+    email: "kato@example.com",
+    role: "editor",
+    createdAt: "2026-05-01T09:00:00+09:00"
+  },
+  {
+    id: "member-watanabe",
+    name: "渡辺",
+    email: "watanabe@example.com",
+    role: "editor",
+    createdAt: "2026-05-01T09:00:00+09:00"
+  },
+  {
+    id: "member-yoshida",
+    name: "吉田",
+    email: "yoshida@example.com",
+    role: "editor",
+    createdAt: "2026-05-01T09:00:00+09:00"
+  }
+];
+
+export const seedAppUsers: AppUser[] = [
+  {
+    id: "app-operator-tanaka",
+    name: "田中",
+    email: "tanaka@example.com",
+    role: "operator",
+    linkedMemberId: "member-tanaka"
+  },
+  {
+    id: "app-operator-yamada",
+    name: "山田",
+    email: "yamada@example.com",
+    role: "operator",
+    linkedMemberId: "member-yamada"
+  },
+  {
+    id: "app-operator-kobayashi",
+    name: "小林",
+    email: "kobayashi@example.com",
+    role: "operator",
+    linkedMemberId: "member-kobayashi"
+  },
+  {
+    id: "app-operator-ito",
+    name: "伊藤",
+    email: "ito@example.com",
+    role: "operator",
+    linkedMemberId: "member-ito"
+  },
+  {
+    id: "app-operator-nakamura",
+    name: "中村",
+    email: "nakamura@example.com",
+    role: "operator",
+    linkedMemberId: "member-nakamura"
+  },
+  {
+    id: "app-editor-sato",
+    name: "佐藤",
+    email: "sato@example.com",
+    role: "editor",
+    linkedMemberId: "member-sato"
+  },
+  {
+    id: "app-editor-suzuki",
+    name: "鈴木",
+    email: "suzuki@example.com",
+    role: "editor",
+    linkedMemberId: "member-suzuki"
+  },
+  {
+    id: "app-editor-kato",
+    name: "加藤",
+    email: "kato@example.com",
+    role: "editor",
+    linkedMemberId: "member-kato"
+  },
+  {
+    id: "app-editor-watanabe",
+    name: "渡辺",
+    email: "watanabe@example.com",
+    role: "editor",
+    linkedMemberId: "member-watanabe"
+  },
+  {
+    id: "app-editor-yoshida",
+    name: "吉田",
+    email: "yoshida@example.com",
+    role: "editor",
+    linkedMemberId: "member-yoshida"
   }
 ];
 

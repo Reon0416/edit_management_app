@@ -27,8 +27,8 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
-  const { projects, updateProjectStatus, addHistory, syncProjectWithMockDrive } = useProjects();
-  const project = projects.find((item) => item.id === params.id);
+  const { visibleProjects, updateProjectStatus, addHistory, syncProjectWithMockDrive } = useProjects();
+  const project = visibleProjects.find((item) => item.id === params.id);
   const [historyType, setHistoryType] = useState<HistoryType>("メモ");
   const [historyContent, setHistoryContent] = useState("");
   const [historyFileUrl, setHistoryFileUrl] = useState("");
